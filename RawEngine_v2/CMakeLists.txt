@@ -25,6 +25,8 @@ set(IMGUI_SOURCES
         Transform.h
         ParticleEmitter.cpp
         ParticleEmitter.h
+        Random.cpp
+        Random.h
 )
 
 add_executable(RawEngine main.cpp

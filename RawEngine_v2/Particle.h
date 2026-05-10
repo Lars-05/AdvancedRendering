@@ -6,13 +6,40 @@ class Particle {
 private:
     core::Texture &particleTexture;
     GLint particleTextureUniform{};
+    GLint alphaUniform{};
     GLint mvpUL{};
     const GLint program;
     const core::Model &baseModel;
     glm::vec2 velocity;
+
+
     glm::vec4 color;
     Transform transform;
-    float lifeTime{};
+
+
+    float gravity;
+    float startGravity;
+    float endGravity;
+
+    float alpha;
+    float startAlpha;
+    float endAlpha;
+
+    glm::vec2 size;
+    glm::vec2 startSize;
+    glm::vec2 endSize;
+
+    float rotation;
+    float startRotation;
+    float endRotation;
+
+    float baseLifeTime;
+public:
+    bool alive = true;
+    float lifeTime;
+
+
+
 
 public:
     Particle(const core::Model &pBaseModel, core::Texture &pParticleTexture, GLint pProgram);
@@ -23,7 +50,19 @@ public:
 
     void SetLifeTime(float);
 
+    void SetPosition(glm::vec3);
+
+    void SetSize(glm::vec2, glm::vec2);
+
+    void SetGravity(float, float);
+
+    void SetRotation(float, float);
+
     void SetColor(glm::vec4);
+
+    void SetAlpha(float, float);
+
+
 
     Transform &GetTransform();
 }

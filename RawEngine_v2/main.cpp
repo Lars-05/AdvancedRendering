@@ -154,6 +154,7 @@ int main() {
 
     core::Model suzanne = core::AssimpLoader::loadModel("models/nonormalmonkey.obj");
     core::Texture cmgtGatoTexture("textures/CMGaTo_crop.png");
+    core::Texture dotTexture("textures/circle_05.png");
 
     glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     glClearColor(clearColor.r,
@@ -172,27 +173,119 @@ int main() {
 
 
     myCamera = new Camera();
-    myParticleEmitter =  new ParticleEmitter(quadModel, &cmgtGatoTexture, textureShaderProgram);
+    myParticleEmitter =  new ParticleEmitter(quadModel, &dotTexture, textureShaderProgram);
 
-    myParticleEmitter->EmitNewParticle();
-    myParticleEmitter->SetVelocity(glm::vec3(0.0f, 1.0f, 0.0f));
+
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
         myCamera->handle_input(window);
-        myParticleEmitter->DebugParticles();
+
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(g_width) / static_cast<float>(g_height), 0.1f, 100.0f);
         glm::mat4 view = glm::lookAt(myCamera->cameraPos, myCamera->cameraPos + myCamera->cameraFront, myCamera->cameraUp); // from world to camera space
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Begin("Raw Engine v2");
-        ImGui::Text("Hello :)");
-        ImGui::End();
+ImGui_ImplOpenGL3_NewFrame();
+ImGui_ImplGlfw_NewFrame();
+ImGui::NewFrame();
 
+ImGui::Begin("Raw Engine v2");
+
+ImGui::Text("Particle Emitter");
+
+
+
+ImGui::SeparatorText("Emission");
+
+ImGui::SliderFloat(
+    "Emission Rate",
+    &myParticleEmitter->emissionRate,
+    1.0f,
+    1000.0f
+);
+
+
+
+static float startGravity = 0.0f;
+static float endGravity = 0.0f;
+
+ImGui::SeparatorText("Gravity");
+
+if (ImGui::SliderFloat("Start Gravity", &startGravity, -20.0f, 20.0f) |
+    ImGui::SliderFloat("End Gravity", &endGravity, -20.0f, 20.0f))
+{
+    myParticleEmitter->SetGravity(startGravity, endGravity);
+}
+
+
+
+
+static float beginAlpha = 1.0f;
+static float endAlpha = 0.0f;
+
+ImGui::SeparatorText("Alpha");
+
+if (ImGui::SliderFloat("Begin Alpha", &beginAlpha, 0.0f, 1.0f) |
+    ImGui::SliderFloat("End Alpha", &endAlpha, 0.0f, 1.0f))
+{
+    myParticleEmitter->SetAlpha(beginAlpha, endAlpha);
+}
+
+
+static float lifetime = 2.0f;
+
+ImGui::SeparatorText("Lifetime");
+
+if (ImGui::SliderFloat("Lifetime", &lifetime, 0.01f, 10.0f))
+{
+    myParticleEmitter->SetLifetime(lifetime);
+}
+
+
+static glm::vec2 startSize(0.2f, 0.2f);
+static glm::vec2 endSize(0.05f, 0.05f);
+
+ImGui::SeparatorText("Size");
+
+if (ImGui::DragFloat2("Start Size", &startSize.x, 0.01f, 0.0f, 10.0f) |
+    ImGui::DragFloat2("End Size", &endSize.x, 0.01f, 0.0f, 10.0f))
+{
+    myParticleEmitter->SetSize(startSize, endSize);
+}
+
+
+
+
+static float startRotation = 0.0f;
+static float endRotation = 360.0f;
+
+ImGui::SeparatorText("Rotation");
+
+if (ImGui::DragFloat("Start Rotation", &startRotation, 1.0f, -360.0f, 360.0f) |
+    ImGui::DragFloat("End Rotation", &endRotation, 1.0f, -360.0f, 360.0f))
+{
+    myParticleEmitter->SetRotation(startRotation, endRotation);
+}
+
+
+
+
+ImGui::SeparatorText("Stats");
+
+int aliveCount = 0;
+
+for (Particle* particle : myParticleEmitter->particles)
+{
+    if (particle->alive)
+        aliveCount++;
+}
+
+ImGui::Text("Particles Alive: %d", aliveCount);
+ImGui::Text("Max Particles: %d", myParticleEmitter->maxParticleCount);
+
+
+ImGui::End();
         //bill board stuff
         //glm::vec3 directionToParticle = myCamera->cameraPos - quad;
 
