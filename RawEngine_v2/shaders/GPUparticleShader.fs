@@ -14,5 +14,6 @@ void main()
     //if (tex.a < 0.01)
         //discard;
 
-    FragColor = tex * ParticleColor;
+    //FragColor = tex * ParticleColor;
+    FragColor = vec4(1,1,1,1);
 }

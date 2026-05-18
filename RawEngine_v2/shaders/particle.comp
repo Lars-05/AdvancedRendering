@@ -57,7 +57,7 @@ void main()
     // physics
     p.velocity.y -= gravity * deltaTime;
     p.position.xyz += p.velocity.xyz * deltaTime;
-
+    p.position.x = 9;
     // alpha fade
     float maxLife = p.data1.y;
 

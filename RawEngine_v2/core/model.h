@@ -18,5 +18,6 @@ namespace core {
 
         void render() const;
         Transform* transform;
+        GLint getVAO();
     };
 }

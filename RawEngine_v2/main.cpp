@@ -217,7 +217,7 @@ int main() {
 
     myCamera = new Camera();
     myParticleEmitter =  new ParticleEmitter(quadModel, &dotTexture, textureShaderProgram);
-    myGpuParticleEmitter = new GPUParticleEmitter(computeProgram,particleVertexProgram,quad.GetVAO(),&dotTexture,1000);
+    myGpuParticleEmitter = new GPUParticleEmitter(computeProgram,modelShaderProgram,suzanne.getVAO(),&dotTexture,1000);
     myGpuParticleEmitter->Initialize();
     myGpuParticleEmitter->EmitParticle();
 
@@ -343,7 +343,7 @@ int main() {
         else {
             myGpuParticleEmitter->Update(deltaTime);
             myGpuParticleEmitter->Render(projection, view,  suzanne.transform->GetPosition());
-            myGpuParticleEmitter->Debug();
+            //myGpuParticleEmitter->Debug();
 
             //ImGui::Text("Particles Alive: %d", aliveCount);
             //particleAmounts.push_back(aliveCount); // send to CSV
@@ -399,7 +399,7 @@ int main() {
 
         glUseProgram(modelShaderProgram);
         glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.transform->GetModelMatrix()));
-        suzanne.render();
+        //suzanne.render();
         glBindVertexArray(0);
 
 

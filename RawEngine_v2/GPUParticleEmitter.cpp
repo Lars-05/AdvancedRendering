@@ -182,6 +182,7 @@ void GPUParticleEmitter::Update(float deltaTime)
     for (int i = 0;  i < particleS.size(); i++) {
         particles.push_back(particleS[i]);
     }
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
 
 
@@ -198,7 +199,7 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
 {
     glUseProgram(renderProgram);
 
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+    //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 
     glUniformMatrix4fv(glGetUniformLocation(renderProgram, "projection"),1,GL_FALSE,&projection[0][0]);
 
@@ -217,19 +218,22 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, particleTexture->getId());
 
+    auto f = glGetUniformLocation(renderProgram, "particleTexture");
     glUniform1i(
-        glGetUniformLocation(renderProgram, "particleTexture"),
+       f,
         0
     );
 
     glBindVertexArray(quadVAO);
 
-    glDrawArraysInstanced(
-        GL_TRIANGLES,
-        0,
-        8,
-        maxParticlesCount
-    );
+    // glDrawArraysInstanced(
+    //     GL_TRIANGLES,
+    //     0,
+    //     8,
+    //     maxParticlesCount
+    // );
+
+    glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 }

@@ -7,4 +7,9 @@ namespace core {
             meshes[i].render();
         }
     }
+
+    GLint Model::getVAO() {
+        return meshes[0].GetVAO();
+
+    }
 }
