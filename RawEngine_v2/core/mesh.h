@@ -16,7 +16,11 @@ namespace core {
         Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices);
         void render() const;
         static Mesh generateQuad();
+        GLuint GetVAO();
     private:
         void setupBuffers();
+
     };
+
+
 }

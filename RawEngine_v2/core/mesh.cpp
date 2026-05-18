@@ -66,4 +66,9 @@ namespace core {
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     }
+
+    GLuint Mesh::GetVAO() {
+        return VAO;
+    }
+
 }

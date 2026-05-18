@@ -11,7 +11,7 @@
 
 class ParticleEmitter {
     public:
-    const unsigned int maxParticleCount = 1000;
+    const unsigned int maxParticleCount = 1000000;
     const core::Model& baseModel;
     core::Texture* texture;
     std::vector<Particle*> particles;
@@ -51,6 +51,7 @@ class ParticleEmitter {
     void SetSize(glm::vec2 beginSize, glm::vec2 endSize);
     void SetRotation(float, float);
     void SetVelocityMinMax(glm::vec2 min, glm::vec2 max);
+    void SetEmissionRate(float pEmissionRate);
 
 
 };

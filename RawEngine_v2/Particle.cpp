@@ -35,31 +35,19 @@ void Particle::Update(const float pDeltaTime, const glm::mat4 &projection, const
     if (!alive)
         return;
 
-
     lifeTime -= pDeltaTime;
     if (lifeTime < 0.0f) {
         alive = false;
     }
 
-    SetVelocity(velocity);
     float progress = 1.0f - (lifeTime / baseLifeTime);
 
     progress = glm::clamp(progress, 0.0f, 1.0f);
 
     alpha = glm::mix(startAlpha, endAlpha, progress);
-
-    rotation = glm::mix(startRotation,
-                        endRotation,
-                        progress);
-
-    gravity = glm::mix(startGravity,
-                       endGravity,
-                       progress);
-
-    size = glm::mix(startSize,
-                    endSize,
-                    progress);
-
+    rotation = glm::mix(startRotation,endRotation,progress);
+    gravity = glm::mix(startGravity,endGravity,progress);
+    size = glm::mix(startSize,endSize,progress);
     transform.SetRotation(glm::vec3(0, 0, rotation));
     transform.SetScale(glm::vec3(size, 0));
     transform.Translate(glm::vec3( velocity.x * pDeltaTime,velocity.y * pDeltaTime, 0));
@@ -75,11 +63,6 @@ void Particle::Update(const float pDeltaTime, const glm::mat4 &projection, const
     baseModel.render();
     glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0);
-
-
-
-
-
 }
 
 void Particle::SetLifeTime(float pLifeTime) {

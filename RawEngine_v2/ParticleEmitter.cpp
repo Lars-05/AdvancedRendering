@@ -77,16 +77,20 @@ void ParticleEmitter::UpdateParticles(const float pDeltaTime, const glm::mat4 &p
 
         particle->Update(pDeltaTime, projection, view);
     }
-    float interval = 1.0f / emissionRate;
     elapsedTime += pDeltaTime;
 
-    if (elapsedTime >= interval)
+    float emissionInterval = 1.0f / emissionRate;
+
+    while (elapsedTime >= emissionInterval)
     {
         EmitParticle();
-        elapsedTime = 0;
+        elapsedTime -= emissionInterval;
     }
 }
 
+void ParticleEmitter::SetEmissionRate(float pEmissionRate) {
+    emissionRate = pEmissionRate;
+}
 void ParticleEmitter::SetAlpha(float value, float endValue)
 {
     startAlpha = value;

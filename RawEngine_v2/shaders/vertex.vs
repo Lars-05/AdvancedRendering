@@ -11,5 +11,6 @@ void main()
    fPos = aPos;
    fNor = aNor;
    uv = aUv;
+
    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
 }

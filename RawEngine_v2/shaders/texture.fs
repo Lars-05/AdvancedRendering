@@ -8,5 +8,7 @@ uniform float alpha;
 void main()
 {
     vec4 diffuse = texture(text, uv);
+        if (alpha < 0.01)
+            discard;
     FragColor = vec4(diffuse.r, diffuse.g, diffuse.b, diffuse.a * alpha);
 }

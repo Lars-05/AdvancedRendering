@@ -7,6 +7,8 @@
 #include <algorithm>
 
 #include "Camera.h"
+#include "CSVTools.hpp"
+#include "GPUParticleEmitter.h"
 #include "ParticleEmitter.h"
 #include "Transform.h"
 #include "core/mesh.h"
@@ -36,6 +38,7 @@ int g_height = 600;
 
 Camera* myCamera;
 ParticleEmitter* myParticleEmitter;
+GPUParticleEmitter* myGpuParticleEmitter;
 
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -80,7 +83,7 @@ GLuint generateShader(const std::string &shaderPath, GLuint shaderType) {
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef __APPLE__
@@ -120,7 +123,10 @@ int main() {
 
     const GLuint modelVertexShader = generateShader("shaders/modelVertex.vs", GL_VERTEX_SHADER);
     const GLuint fragmentShader = generateShader("shaders/fragment.fs", GL_FRAGMENT_SHADER);
+    const GLuint computeShader = generateShader("shaders/particle.comp", GL_COMPUTE_SHADER);
+    const GLuint particleRenderShader = generateShader("shaders/particleVert.vs", GL_VERTEX_SHADER);
     const GLuint textureShader = generateShader("shaders/texture.fs", GL_FRAGMENT_SHADER);
+    const GLuint particleFragmentShader =generateShader("shaders/GPUparticleShader.fs",GL_FRAGMENT_SHADER);
 
     int success;
     char infoLog[512];
@@ -141,6 +147,43 @@ int main() {
     if (!success) {
         glGetProgramInfoLog(textureShaderProgram, 512, NULL, infoLog);
         printf("Error! Making Shader Program: %s\n", infoLog);
+    }
+
+    GLuint particleFragmentProgram = glCreateProgram();
+    glAttachShader(particleFragmentProgram,particleRenderShader);
+    glAttachShader(particleFragmentProgram,particleFragmentShader);
+    glLinkProgram(particleFragmentProgram);
+    glGetProgramiv(particleFragmentProgram,GL_LINK_STATUS,&success);
+    if (!success)
+    {
+        glGetProgramInfoLog(particleFragmentProgram,512,NULL,infoLog);
+        printf("Particle Program Link Error: %s\n",infoLog
+        );
+    }
+    GLuint computeProgram = glCreateProgram();
+
+    glAttachShader(computeProgram, computeShader);
+    glLinkProgram(computeProgram);
+    glGetProgramiv(computeProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(computeProgram, 512, NULL, infoLog);
+        printf("Compute Program Link Error: %s\n", infoLog);
+    }
+
+    GLuint particleVertexProgram = glCreateProgram();
+
+    glAttachShader(particleVertexProgram, particleRenderShader);
+    glAttachShader(particleVertexProgram, textureShader);
+
+    glLinkProgram(particleVertexProgram);
+
+    glGetProgramiv(particleVertexProgram, GL_LINK_STATUS, &success);
+
+    if (!success)
+    {
+        glGetProgramInfoLog(particleVertexProgram, 512, NULL, infoLog);
+        printf("Particle Program Link Error: %s\n", infoLog);
     }
 
     glDeleteShader(modelVertexShader);
@@ -174,7 +217,12 @@ int main() {
 
     myCamera = new Camera();
     myParticleEmitter =  new ParticleEmitter(quadModel, &dotTexture, textureShaderProgram);
+    myGpuParticleEmitter = new GPUParticleEmitter(computeProgram,particleVertexProgram,quad.GetVAO(),&dotTexture,1000);
+    myGpuParticleEmitter->Initialize();
+    myGpuParticleEmitter->EmitParticle();
 
+    std::vector<float> frameTimes;
+    std::vector<int> particleAmounts;
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -186,106 +234,150 @@ int main() {
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(g_width) / static_cast<float>(g_height), 0.1f, 100.0f);
         glm::mat4 view = glm::lookAt(myCamera->cameraPos, myCamera->cameraPos + myCamera->cameraFront, myCamera->cameraUp); // from world to camera space
 
-ImGui_ImplOpenGL3_NewFrame();
-ImGui_ImplGlfw_NewFrame();
-ImGui::NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-ImGui::Begin("Raw Engine v2");
+        ImGui::Begin("Particle Engine (Based on Raw Engine V2");
 
-ImGui::Text("Particle Emitter");
+        static int modeIndex = 1; // default GPU
+        const char* modes[] = { "CPU", "GPU" };
 
+        ImGui::Combo("Particle Mode", &modeIndex, modes, 2);
 
+        bool useCPU = (modeIndex == 0);
+        bool useGPU = (modeIndex == 1);
 
-ImGui::SeparatorText("Emission");
-
-ImGui::SliderFloat(
-    "Emission Rate",
-    &myParticleEmitter->emissionRate,
-    1.0f,
-    1000.0f
-);
+        ImGui::Separator();
+        ImGui::Text("Particle Emitter");
 
 
+        if (useCPU) {
 
-static float startGravity = 0.0f;
-static float endGravity = 0.0f;
+            static float emissionRate = 0.0f;
+            ImGui::SeparatorText("Emission");
 
-ImGui::SeparatorText("Gravity");
-
-if (ImGui::SliderFloat("Start Gravity", &startGravity, -20.0f, 20.0f) |
-    ImGui::SliderFloat("End Gravity", &endGravity, -20.0f, 20.0f))
-{
-    myParticleEmitter->SetGravity(startGravity, endGravity);
-}
+            ImGui::SliderFloat("Emission Rate",&emissionRate,1.0f,100000.0f,"%.1f",ImGuiSliderFlags_Logarithmic);
+            {
+                myParticleEmitter->SetEmissionRate(emissionRate);
+            }
 
 
 
+            static float startGravity = 0.0f;
+            static float endGravity = 0.0f;
 
-static float beginAlpha = 1.0f;
-static float endAlpha = 0.0f;
+            ImGui::SeparatorText("Gravity");
 
-ImGui::SeparatorText("Alpha");
-
-if (ImGui::SliderFloat("Begin Alpha", &beginAlpha, 0.0f, 1.0f) |
-    ImGui::SliderFloat("End Alpha", &endAlpha, 0.0f, 1.0f))
-{
-    myParticleEmitter->SetAlpha(beginAlpha, endAlpha);
-}
-
-
-static float lifetime = 2.0f;
-
-ImGui::SeparatorText("Lifetime");
-
-if (ImGui::SliderFloat("Lifetime", &lifetime, 0.01f, 10.0f))
-{
-    myParticleEmitter->SetLifetime(lifetime);
-}
-
-
-static glm::vec2 startSize(0.2f, 0.2f);
-static glm::vec2 endSize(0.05f, 0.05f);
-
-ImGui::SeparatorText("Size");
-
-if (ImGui::DragFloat2("Start Size", &startSize.x, 0.01f, 0.0f, 10.0f) |
-    ImGui::DragFloat2("End Size", &endSize.x, 0.01f, 0.0f, 10.0f))
-{
-    myParticleEmitter->SetSize(startSize, endSize);
-}
+            if (ImGui::SliderFloat("Start Gravity", &startGravity, -20.0f, 20.0f) |ImGui::SliderFloat("End Gravity", &endGravity, -20.0f, 20.0f))
+            {
+                myParticleEmitter->SetGravity(startGravity, endGravity);
+            }
 
 
 
 
-static float startRotation = 0.0f;
-static float endRotation = 360.0f;
+            static float beginAlpha = 1.0f;
+            static float endAlpha = 0.0f;
 
-ImGui::SeparatorText("Rotation");
+            ImGui::SeparatorText("Alpha");
 
-if (ImGui::DragFloat("Start Rotation", &startRotation, 1.0f, -360.0f, 360.0f) |
-    ImGui::DragFloat("End Rotation", &endRotation, 1.0f, -360.0f, 360.0f))
-{
-    myParticleEmitter->SetRotation(startRotation, endRotation);
-}
-
-
+            if (ImGui::SliderFloat("Begin Alpha", &beginAlpha, 0.0f, 1.0f) |
+            ImGui::SliderFloat("End Alpha", &endAlpha, 0.0f, 1.0f))
+            {
+                myParticleEmitter->SetAlpha(beginAlpha, endAlpha);
+            }
 
 
-ImGui::SeparatorText("Stats");
+            static float lifetime = 2.0f;
 
-int aliveCount = 0;
+            ImGui::SeparatorText("Lifetime");
 
-for (Particle* particle : myParticleEmitter->particles)
-{
-    if (particle->alive)
-        aliveCount++;
-}
-
-ImGui::Text("Particles Alive: %d", aliveCount);
-ImGui::Text("Max Particles: %d", myParticleEmitter->maxParticleCount);
+            if (ImGui::SliderFloat("Lifetime", &lifetime, 0.01f, 100.0f))
+            {
+                myParticleEmitter->SetLifetime(lifetime);
+            }
 
 
-ImGui::End();
+            static glm::vec2 startSize(0.2f, 0.2f);
+            static glm::vec2 endSize(0.05f, 0.05f);
+
+            ImGui::SeparatorText("Size");
+
+            if (ImGui::DragFloat2("Start Size", &startSize.x, 0.01f, 0.0f, 10.0f) |
+            ImGui::DragFloat2("End Size", &endSize.x, 0.01f, 0.0f, 10.0f))
+            {
+                myParticleEmitter->SetSize(startSize, endSize);
+            }
+
+            static float startRotation = 0.0f;
+            static float endRotation = 360.0f;
+
+            ImGui::SeparatorText("Rotation");
+
+            if (ImGui::DragFloat("Start Rotation", &startRotation, 1.0f, -360.0f, 360.0f) |
+            ImGui::DragFloat("End Rotation", &endRotation, 1.0f, -360.0f, 360.0f))
+            {
+                myParticleEmitter->SetRotation(startRotation, endRotation);
+            }
+
+
+
+
+            ImGui::SeparatorText("Stats");
+
+            int aliveCount = 0;
+
+            for (Particle* particle : myParticleEmitter->particles)
+            {
+                if (particle->alive)
+                    aliveCount++;
+            }
+
+
+            ImGui::Text("Particles Alive: %d", aliveCount);
+            particleAmounts.push_back(aliveCount); // send to CSV
+            ImGui::Text("Max Particles: %d", myParticleEmitter->maxParticleCount);
+            myParticleEmitter->UpdateParticles(deltaTime, projection, view);
+        }
+        else {
+            myGpuParticleEmitter->Update(deltaTime);
+            myGpuParticleEmitter->Render(projection, view,  suzanne.transform->GetPosition());
+            myGpuParticleEmitter->Debug();
+
+            //ImGui::Text("Particles Alive: %d", aliveCount);
+            //particleAmounts.push_back(aliveCount); // send to CSV
+
+            static float emissionRate = 0.0f;
+            ImGui::SeparatorText("Emission");
+
+            ImGui::SliderFloat("Emission Rate",&emissionRate,1.0f,100000.0f,"%.1f",ImGuiSliderFlags_Logarithmic);
+            {
+                myGpuParticleEmitter->SetEmissionRate(emissionRate);
+            }
+
+            ImGui::Text("Alive: %d", myGpuParticleEmitter->aliveCount);
+            ImGui::Text("Dead: %d", myGpuParticleEmitter->deadCount);
+            ImGui::Text("Max Particles: %d", myGpuParticleEmitter->maxParticlesCount);
+
+
+
+
+
+
+
+        }
+
+
+
+
+        ImGui::End();
+
+
+
+
+
+
         //bill board stuff
         //glm::vec3 directionToParticle = myCamera->cameraPos - quad;
 
@@ -304,7 +396,6 @@ ImGui::End();
         glBindVertexArray(0);
         glActiveTexture(GL_TEXTURE0);
 */
-        myParticleEmitter->UpdateParticles(deltaTime, projection, view);
 
         glUseProgram(modelShaderProgram);
         glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.transform->GetModelMatrix()));
@@ -320,8 +411,13 @@ ImGui::End();
         finishFrameTime = glfwGetTime();
         deltaTime = static_cast<float>(finishFrameTime - currentTime);
         currentTime = finishFrameTime;
+
+        frameTimes.push_back(deltaTime);
+
     }
 
+
+    CSVTools::WriteCSV(frameTimes, particleAmounts, "TestData");
     glDeleteProgram(modelShaderProgram);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

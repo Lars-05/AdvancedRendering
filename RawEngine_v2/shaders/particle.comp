@@ -1,0 +1,69 @@
+#version 430
+
+layout(local_size_x = 256) in;
+
+struct Particle
+{
+    vec4 position;
+    vec4 velocity;
+    vec4 color;
+
+    vec4 data1; // x = life, y = maxLife, z = size, w = alive
+    vec4 data2; // x = gravity
+};
+
+layout(std430, binding = 0) buffer ParticleBuffer
+{
+    Particle particles[];
+};
+
+uniform float deltaTime;
+uniform uint maxParticles;
+
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+
+    if (id >= maxParticles)
+    return;
+
+    Particle p = particles[id];
+
+    if (p.data1.w <= 0.0)
+    return;
+
+    // current life
+    float life = p.data1.x;
+
+    // decrease life
+    life -= deltaTime;
+
+    // particle died
+    if (life <= 0.0)
+    {
+        p.data1.x = 0.0;
+        p.data1.w = 0.0; // DEAD
+
+        particles[id] = p;
+        return;
+    }
+
+    // write updated life
+    p.data1.x = life;
+
+    // gravity
+    float gravity = p.data2.x;
+
+    // physics
+    p.velocity.y -= gravity * deltaTime;
+    p.position.xyz += p.velocity.xyz * deltaTime;
+
+    // alpha fade
+    float maxLife = p.data1.y;
+
+    float progress = 1.0 - (life / maxLife);
+
+    p.color.a = mix(1.0, 0.0, progress);
+
+    particles[id] = p;
+}

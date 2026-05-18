@@ -12,10 +12,8 @@ private:
     const core::Model &baseModel;
     glm::vec2 velocity;
 
-
     glm::vec4 color;
     Transform transform;
-
 
     float gravity;
     float startGravity;
@@ -34,14 +32,12 @@ private:
     float endRotation;
 
     float baseLifeTime;
-public:
-    bool alive = true;
     float lifeTime;
 
-
-
-
 public:
+    bool alive = true;
+
+
     Particle(const core::Model &pBaseModel, core::Texture &pParticleTexture, GLint pProgram);
 
     void Update(float pDeltaTime, const glm::mat4 &projection, const glm::mat4 &view);

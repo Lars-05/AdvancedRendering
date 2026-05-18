@@ -27,6 +27,12 @@ set(IMGUI_SOURCES
         ParticleEmitter.h
         Random.cpp
         Random.h
+        GPUParticle.cpp
+        GPUParticle.h
+        GPUParticleEmitter.cpp
+        GPUParticleEmitter.h
+        CSVTools.cpp
+        CSVTools.hpp
 )
 
 add_executable(RawEngine main.cpp
