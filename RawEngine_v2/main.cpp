@@ -342,7 +342,7 @@ int main() {
         }
         else {
             myGpuParticleEmitter->Update(deltaTime);
-            myGpuParticleEmitter->Render(projection, view,  suzanne.transform->GetPosition());
+            myGpuParticleEmitter->Render(projection, view);
             //myGpuParticleEmitter->Debug();
 
             //ImGui::Text("Particles Alive: %d", aliveCount);

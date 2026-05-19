@@ -142,7 +142,7 @@ void GPUParticleEmitter::Update(float deltaTime)
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     std::vector<GPUParticle> particleS;
-    particleS.resize(32);
+    particleS.resize(maxParticlesCount);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
     void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
     if (ptr) {
@@ -167,7 +167,7 @@ void GPUParticleEmitter::Update(float deltaTime)
 
 
     particles.clear();
-    for (int i = 0;  i < particleS.size(); i++) {
+    for (int i = 0;  i < maxParticlesCount; i++) {
         particles.push_back(particleS[i]);
     }
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -183,10 +183,23 @@ void GPUParticleEmitter::Update(float deltaTime)
     //}
 }
 
-void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& view, const glm::vec3& worldPos)
-{
+std::vector<GPUParticle> GPUParticleEmitter::GetAliveParticles(const std::vector<GPUParticle>& particleVector){
+    std::vector<GPUParticle> aliveParticles;
 
-    for (auto& part : particles) {
+    for (const auto& particle : particleVector)
+    {
+        if (particle.data1.w == 1)
+        {
+            aliveParticles.push_back(particle);
+        }
+    }
+
+    return aliveParticles;
+}
+void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& view)
+{
+    std::vector<GPUParticle> aliveParticles = GetAliveParticles(particles);
+    for (auto& part : aliveParticles) {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), part.position);
 
         glm::mat4 MVPmatrix = projection * view * model;

@@ -17,10 +17,11 @@ public:
     GPUParticleEmitter(GLuint computeProgram,GLuint renderProgram,GLuint quadVAO,core::Texture* texture,int maxParticles);
     ~GPUParticleEmitter();
     void EmitParticle();
+    std::vector<GPUParticle> GetAliveParticles(const std::vector<GPUParticle>&);
     void SetEmissionRate(float rate);
     void Initialize();
     void Update(float dt);
-    void Render(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& worldPos);
+    void Render(const glm::mat4& projection, const glm::mat4& view);
     void Debug();
 
 private:

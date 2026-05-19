@@ -39,14 +39,14 @@ void main()
     life -= deltaTime;
 
     // particle died
-    if (life <= 0.0)
-    {
-        p.data1.x = 0.0;
-        p.data1.w = 0.0; // DEAD
-
-        particles[id] = p;
-        return;
-    }
+//    if (life <= 0.0)
+//    {
+//        p.data1.x = 0.0;
+//        p.data1.w = 0.0; // DEAD
+//
+//        particles[id] = p;
+//        return;
+//    }
 
     // write updated life
     p.data1.x = life;
@@ -55,9 +55,10 @@ void main()
     float gravity = p.data2.x;
 
     // physics
-    p.velocity.y -= gravity * deltaTime;
-    p.position.xyz += p.velocity.xyz * deltaTime;
-    p.position.x = 9;
+    //p.velocity.y -= gravity * deltaTime;
+    //p.position.xyz += p.position.xyz * 0.1; //deltaTime;
+    p.position.y += 0.001;
+    //p.position.y = -9;
     // alpha fade
     float maxLife = p.data1.y;
 
