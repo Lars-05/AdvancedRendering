@@ -174,7 +174,7 @@ int main() {
     GLuint particleVertexProgram = glCreateProgram();
 
     glAttachShader(particleVertexProgram, particleRenderShader);
-    glAttachShader(particleVertexProgram, textureShader);
+    glAttachShader(particleVertexProgram, particleFragmentShader);
 
     glLinkProgram(particleVertexProgram);
 
@@ -217,7 +217,7 @@ int main() {
 
     myCamera = new Camera();
     myParticleEmitter =  new ParticleEmitter(quadModel, &dotTexture, textureShaderProgram);
-    myGpuParticleEmitter = new GPUParticleEmitter(computeProgram,modelShaderProgram,suzanne.getVAO(),&dotTexture,1000);
+    myGpuParticleEmitter = new GPUParticleEmitter(computeProgram,particleVertexProgram,quadModel.getVAO(),&dotTexture,1000);
     myGpuParticleEmitter->Initialize();
     myGpuParticleEmitter->EmitParticle();
 

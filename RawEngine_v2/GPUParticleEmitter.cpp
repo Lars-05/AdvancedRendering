@@ -4,6 +4,7 @@
 #include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 #include "GPUParticle.h"
 #include "Random.h"
@@ -164,19 +165,6 @@ void GPUParticleEmitter::Update(float deltaTime)
         std::cout << "Shader link error:\n" << infoLog << std::endl;
     }
 
-    GLint projLoc  = glGetUniformLocation(program, "projection");
-    GLint viewLoc  = glGetUniformLocation(program, "view");
-    GLint worldLoc = glGetUniformLocation(program, "worldPos");
-
-    if (projLoc == -1)
-        std::cout << "projection uniform not found\n";
-
-    if (viewLoc == -1)
-        std::cout << "view uniform not found\n";
-
-    if (worldLoc == -1)
-        std::cout << "worldPos uniform not found\n";
-
 
     particles.clear();
     for (int i = 0;  i < particleS.size(); i++) {
@@ -197,45 +185,43 @@ void GPUParticleEmitter::Update(float deltaTime)
 
 void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& view, const glm::vec3& worldPos)
 {
-    glUseProgram(renderProgram);
 
-    //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+    for (auto& part : particles) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), part.position);
 
-    glUniformMatrix4fv(glGetUniformLocation(renderProgram, "projection"),1,GL_FALSE,&projection[0][0]);
+        glm::mat4 MVPmatrix = projection * view * model;
+        glUseProgram(renderProgram);
 
-    glUniformMatrix4fv(
-        glGetUniformLocation(renderProgram, "view"),
-        1,
-        GL_FALSE,
-        &view[0][0]
-    );
-
-
-    glUniform3f(glGetUniformLocation(renderProgram, "worldPos"), worldPos.x, worldPos.y, worldPos.z);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 
 
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, particleTexture->getId());
 
-    auto f = glGetUniformLocation(renderProgram, "particleTexture");
-    glUniform1i(
-       f,
-        0
-    );
 
-    glBindVertexArray(quadVAO);
+        glUniform3f(glGetUniformLocation(renderProgram, "worldPos"), part.position.x, part.position.y, part.position.z);
+        glUniformMatrix4fv(glGetUniformLocation(renderProgram, "mvpMatrix"),1,GL_FALSE,&MVPmatrix[0][0]);
 
-    // glDrawArraysInstanced(
-    //     GL_TRIANGLES,
-    //     0,
-    //     8,
-    //     maxParticlesCount
-    // );
 
-    glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, particleTexture->getId());
 
-    glBindVertexArray(0);
+
+        glUniform1i(glGetUniformLocation(renderProgram, "particleTexture"),0);
+
+        glBindVertexArray(quadVAO);
+
+        // glDrawArraysInstanced(
+        //     GL_TRIANGLES,
+        //     0,
+        //     8,
+        //     maxParticlesCount
+        // );
+
+        glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(0);
+    }
+
 }
 
 

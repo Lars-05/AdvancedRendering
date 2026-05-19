@@ -1,20 +1,16 @@
-#version 430
+#version 400
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNor;
+layout (location = 2) in vec2 aUv;
+uniform mat4 mvpMatrix;
+out vec3 fPos;
+out vec3 fNor;
+out vec2 uv;
 
-layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec2 aUV;
+void main() {
+  fPos = aPos;
+  fNor = aNor;
+      uv = aPos.xy * 0.5 + 0.5;
 
-uniform mat4 projection;
-uniform mat4 view;
-uniform vec3 worldPos;
-
-out vec2 TexCoord;
-out vec4 ParticleColor;
-
-void main()
-{
-
-    gl_Position = projection * view * vec4(worldPos, 1.0);
-
-    TexCoord = aUV;
-    ParticleColor = vec4(1,0,0,1);
+  gl_Position = mvpMatrix * vec4(aPos, 1.0);
 }
