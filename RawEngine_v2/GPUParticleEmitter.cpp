@@ -79,11 +79,11 @@ void GPUParticleEmitter::EmitParticle()
         p.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
         p.velocity = glm::vec4(
-            random.RandomFloat(-1.0f, 1.0f),
+            random.RandomFloat(1.0f, 3.0f), // RIGHT bias
             random.RandomFloat(2.0f, 5.0f),
             0.0f,
             0.0f
-        );
+            );
 
         p.color = glm::vec4(1.0f);
 
@@ -95,7 +95,7 @@ void GPUParticleEmitter::EmitParticle()
         );
 
         p.data2  = glm::vec4(
-        1, // gravity
+        gravity, // gravity
         0,
         0,
         0
@@ -114,32 +114,7 @@ bool emit = true;
 
 void GPUParticleEmitter::Update(float deltaTime)
 {
-    elapsedTime += deltaTime;
 
-    float interval = 1.0f / emissionRate;
-
-    if (elapsedTime >= interval && emit) {
-        EmitParticle();
-        emit = false;
-    }
-
-    glUseProgram(computeProgram);
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-
-    glUniform1f(glGetUniformLocation(computeProgram, "deltaTime"),deltaTime);
-   // glUniform1f(glGetUniformLocation(computeProgram, "particleIn"),particles[0]);
-
-    glUniform1ui(glGetUniformLocation(computeProgram, "maxParticles"),maxParticlesCount);
-
-    GLuint workGroups = (maxParticlesCount + 255) / 256; //batch of parallel threads on gpu
-
-    // go my compute shader!!
-    glDispatchCompute(workGroups, 1, 1);
-
-
-    // make sure writing to ssbo has finished before read
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     std::vector<GPUParticle> particleS;
     particleS.resize(maxParticlesCount);
@@ -172,16 +147,46 @@ void GPUParticleEmitter::Update(float deltaTime)
     }
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
+    elapsedTime += deltaTime;
+
+    float interval = 1.0f / emissionRate;
+
+    if (elapsedTime >= interval && emit) {
+        EmitParticle();
+        emit = false;
+    }
+
+    glUseProgram(computeProgram);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+
+    glUniform1f(glGetUniformLocation(computeProgram, "deltaTime"),deltaTime);
+    // glUniform1f(glGetUniformLocation(computeProgram, "particleIn"),particles[0]);
+
+    glUniform1ui(glGetUniformLocation(computeProgram, "maxParticles"),maxParticlesCount);
+
+    GLuint workGroups = (maxParticlesCount + 255) / 256; //batch of parallel threads on gpu
+
+    // go my compute shader!!
+    glDispatchCompute(workGroups, 1, 1);
+
+
+    // make sure writing to ssbo has finished before read
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 
 
+    while (elapsedTime >= interval) {
+        EmitParticle();
+        elapsedTime -= interval;
+    }
 
-    //while (elapsedTime >= interval)
-    //{
-       // EmitParticle();
-        //elapsedTime -= interval;
-    //}
 }
+
+void GPUParticleEmitter::SetGravity(float pGravity) {
+    gravity = pGravity;
+}
+
 
 std::vector<GPUParticle> GPUParticleEmitter::GetAliveParticles(const std::vector<GPUParticle>& particleVector){
     std::vector<GPUParticle> aliveParticles;

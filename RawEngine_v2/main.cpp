@@ -355,6 +355,13 @@ int main() {
             {
                 myGpuParticleEmitter->SetEmissionRate(emissionRate);
             }
+            static float gravityRate = 0.0f;
+            ImGui::SeparatorText("Gravity");
+            ImGui::SliderFloat("Gravity",&gravityRate,1.0f,100000.0f,"%.1f",ImGuiSliderFlags_Logarithmic);
+            {
+                myGpuParticleEmitter->SetGravity(gravityRate);
+            }
+
 
             ImGui::Text("Alive: %d", myGpuParticleEmitter->aliveCount);
             ImGui::Text("Dead: %d", myGpuParticleEmitter->deadCount);
