@@ -7,9 +7,8 @@ struct Particle
     vec4 position;
     vec4 velocity;
     vec4 color;
-
-    vec4 data1; // x = life, y = maxLife, z = size, w = alive
-    vec4 data2; // x = gravity
+    vec4 data1;
+    vec4 data2;
 };
 
 layout(std430, binding = 0) buffer ParticleBuffer
@@ -32,38 +31,21 @@ void main()
     if (p.data1.w <= 0.0)
     return;
 
-    // current life
     float life = p.data1.x;
-
-    // decrease life
     life -= deltaTime;
-
-    // particle died
-//    if (life <= 0.0)
-//    {
-//        p.data1.x = 0.0;
-//        p.data1.w = 0.0; // DEAD
-//
-//        particles[id] = p;
-//        return;
-//    }
-
-    // write updated life
     p.data1.x = life;
 
-    // gravity
     float gravity = p.data2.x;
+    p.velocity.y -= gravity * deltaTime;
 
-    // physics
-    //p.velocity.y -= gravity * deltaTime;
-    //p.position.xyz += p.position.xyz * 0.1; //deltaTime;
-    p.position.y += 0.011111f* deltaTime;
-    //p.position.y = -9;
-    // alpha fade
+
+    p.velocity.x = 0.0;
+
+
+    p.position.xyz += p.velocity.xyz * deltaTime;
+
     float maxLife = p.data1.y;
-
     float progress = 1.0 - (life / maxLife);
-
     p.color.a = mix(1.0, 0.0, progress);
 
     particles[id] = p;

@@ -19,6 +19,7 @@ GPUParticleEmitter::GPUParticleEmitter(
     printf("Constructor constructed succesfully");
 }
 
+
 GPUParticleEmitter::~GPUParticleEmitter()
 {
     if (ssbo != 0)
@@ -39,7 +40,7 @@ void GPUParticleEmitter::Initialize()
     for (auto& p : particles)
     {
         p.position = glm::vec4(0.0f);
-        p.velocity = glm::vec4(0.0f);
+        //p.velocity = glm::vec4(0.0f);
         p.color    = glm::vec4(1.0f);
 
         // x = life, y = maxLife, z = size, w = alive
@@ -75,15 +76,10 @@ void GPUParticleEmitter::EmitParticle()
         if (p.data1.w > 0.5f)
             continue;
 
-        // reset particle
-        p.position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-        p.velocity = glm::vec4(
-            random.RandomFloat(1.0f, 3.0f), // RIGHT bias
-            random.RandomFloat(2.0f, 5.0f),
-            0.0f,
-            0.0f
-            );
+
+
+
 
         p.color = glm::vec4(1.0f);
 
@@ -103,8 +99,30 @@ void GPUParticleEmitter::EmitParticle()
 
         // upload to GPU
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER,0,sizeof(GPUParticle) * maxParticlesCount,particles.data());
+
+        glBufferSubData(
+            GL_SHADER_STORAGE_BUFFER,
+            0,
+            sizeof(GPUParticle) * maxParticlesCount,
+            particles.data()
+        );
+
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+        void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+
+        if (ptr)
+        {
+            memcpy(
+                particles.data(),
+                ptr,
+                sizeof(GPUParticle) * maxParticlesCount
+            );
+        }
+
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
         return;
     }
@@ -114,73 +132,53 @@ bool emit = true;
 
 void GPUParticleEmitter::Update(float deltaTime)
 {
-
-
-    std::vector<GPUParticle> particleS;
-    particleS.resize(maxParticlesCount);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-    if (ptr) {
-        memcpy(particleS.data(), ptr, sizeof(GPUParticle) * particleS.size());
-    }
-
-
-    if (!glIsProgram(renderProgram))
-        printf("Render program invalid\n");
-
-    GLuint program = renderProgram;
-
-    GLint success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-
-    if (!success)
-    {
-        char infoLog[1024];
-        glGetProgramInfoLog(program, 1024, nullptr, infoLog);
-        std::cout << "Shader link error:\n" << infoLog << std::endl;
-    }
-
-
-    particles.clear();
-    for (int i = 0;  i < maxParticlesCount; i++) {
-        particles.push_back(particleS[i]);
-    }
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
     elapsedTime += deltaTime;
 
     float interval = 1.0f / emissionRate;
 
-    if (elapsedTime >= interval && emit) {
+    while (elapsedTime >= interval)
+    {
         EmitParticle();
-        emit = false;
+        elapsedTime -= interval;
     }
 
     glUseProgram(computeProgram);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 
-    glUniform1f(glGetUniformLocation(computeProgram, "deltaTime"),deltaTime);
-    // glUniform1f(glGetUniformLocation(computeProgram, "particleIn"),particles[0]);
+    glUniform1f(
+        glGetUniformLocation(computeProgram, "deltaTime"),
+        deltaTime
+    );
 
-    glUniform1ui(glGetUniformLocation(computeProgram, "maxParticles"),maxParticlesCount);
+    glUniform1ui(
+        glGetUniformLocation(computeProgram, "maxParticles"),
+        maxParticlesCount
+    );
 
-    GLuint workGroups = (maxParticlesCount + 255) / 256; //batch of parallel threads on gpu
+    GLuint workGroups = (maxParticlesCount + 255) / 256;
 
-    // go my compute shader!!
     glDispatchCompute(workGroups, 1, 1);
 
-
-    // make sure writing to ssbo has finished before read
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+    // READ GPU DATA BACK TO CPU
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 
+    void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
 
-    while (elapsedTime >= interval) {
-        EmitParticle();
-        elapsedTime -= interval;
+    if (ptr)
+    {
+        memcpy(
+            particles.data(),
+            ptr,
+            sizeof(GPUParticle) * maxParticlesCount
+        );
+
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
     }
 
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 void GPUParticleEmitter::SetGravity(float pGravity) {
@@ -204,6 +202,7 @@ std::vector<GPUParticle> GPUParticleEmitter::GetAliveParticles(const std::vector
 void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& view)
 {
     std::vector<GPUParticle> aliveParticles = GetAliveParticles(particles);
+
     for (auto& part : aliveParticles) {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), part.position);
 
@@ -213,12 +212,8 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
         //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 
 
-
-
-
         glUniform3f(glGetUniformLocation(renderProgram, "worldPos"), part.position.x, part.position.y, part.position.z);
         glUniformMatrix4fv(glGetUniformLocation(renderProgram, "mvpMatrix"),1,GL_FALSE,&MVPmatrix[0][0]);
-
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, particleTexture->getId());

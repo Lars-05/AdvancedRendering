@@ -11,6 +11,7 @@
 class GPUParticleEmitter
 {
 public:
+    Random* random = new Random();
     int maxParticlesCount = 10000;
     int aliveCount = 0;
     int deadCount = 0;
@@ -42,7 +43,7 @@ private:
 
     std::vector<GPUParticle> particles;
 
-    Random random;
+
 
     float emissionRate = 20.0f;
     float elapsedTime = 0.0f;
