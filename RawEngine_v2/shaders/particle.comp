@@ -23,30 +23,40 @@ void main()
 {
     uint id = gl_GlobalInvocationID.x;
 
-    if (id >= maxParticles)
-    return;
+//    if (id >= maxParticles)
+//    return;
 
     Particle p = particles[id];
+    p.position.xyzw = vec4(0);
+    p.velocity.xyzw = vec4(0);
+    p.color.xyzw = vec4(0);
+    p.data1.xyzw = vec4(0);
+    p.data2.xyzw = vec4(0);
+    p.data2.x = 7;
+    p.data2.y = id;
 
-    if (p.data1.w <= 0.0)
-    return;
+//    if (p.data1.w <= 0.0)
+//    return;
 
-    float life = p.data1.x;
-    life -= deltaTime;
-    p.data1.x = life;
-
-    float gravity = p.data2.x;
-    p.velocity.y -= gravity * deltaTime;
-
-
-    p.velocity.x = 0.0;
-
-
-    p.position.xyz += p.velocity.xyz * deltaTime;
-
-    float maxLife = p.data1.y;
-    float progress = 1.0 - (life / maxLife);
-    p.color.a = mix(1.0, 0.0, progress);
+//    float life = p.data1.x;
+//    life -= deltaTime;
+//    p.data1.x = life;
+//    p.data1.w = 1;
+//    p.data2.y = id;
+//    p.data2.z = 7;
+//
+//    float gravity = p.data2.x;
+//    p.velocity.y -= gravity * deltaTime;
+//
+//
+//    //p.velocity.x = 0.0;
+//
+//
+//    //p.position.xyz += p.velocity.xyz * deltaTime;
+//
+//    float maxLife = p.data1.y;
+//    float progress = 1.0 - (life / maxLife);
+//    p.color.a = mix(1.0, 0.0, progress);
 
     particles[id] = p;
 }

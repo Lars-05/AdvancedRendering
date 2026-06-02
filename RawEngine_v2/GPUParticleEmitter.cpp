@@ -37,27 +37,27 @@ void GPUParticleEmitter::SetEmissionRate(float rate) {
 
 void GPUParticleEmitter::Initialize()
 {
-    for (auto& p : particles)
-    {
-        p.position = glm::vec4(0.0f);
-        //p.velocity = glm::vec4(0.0f);
-        p.color    = glm::vec4(1.0f);
-
-        // x = life, y = maxLife, z = size, w = alive
-        p.data1 = glm::vec4(
-            0.0f,   // life
-            5.0f,   // max life
-            0.2f,   // size
-            0.0f    // dead
-        );
-
-        p.data2 = glm::vec4(
-            9.81f,  // gravity
-            0.0f,
-            0.0f,
-            0.0f
-        );
-    }
+    // for (auto& p : particles)
+    // {
+    //     p.position = glm::vec4(0.0f);
+    //     //p.velocity = glm::vec4(0.0f);
+    //     p.color    = glm::vec4(1.0f);
+    //
+    //     // x = life, y = maxLife, z = size, w = alive
+    //     p.data1 = glm::vec4(
+    //         0.0f,   // life
+    //         5.0f,   // max life
+    //         0.2f,   // size
+    //         0.0f    // dead
+    //     );
+    //
+    //     p.data2 = glm::vec4(
+    //         9.81f,  // gravity
+    //         0.0f,
+    //         0.0f,
+    //         3.0f
+    //     );
+    // }
 
     glGenBuffers(1, &ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
@@ -76,11 +76,6 @@ void GPUParticleEmitter::EmitParticle()
         if (p.data1.w > 0.5f)
             continue;
 
-
-
-
-
-
         p.color = glm::vec4(1.0f);
 
         p.data1 = glm::vec4(
@@ -98,32 +93,32 @@ void GPUParticleEmitter::EmitParticle()
         );
 
         // upload to GPU
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-
-        glBufferSubData(
-            GL_SHADER_STORAGE_BUFFER,
-            0,
-            sizeof(GPUParticle) * maxParticlesCount,
-            particles.data()
-        );
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-
-        void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-
-        if (ptr)
-        {
-            memcpy(
-                particles.data(),
-                ptr,
-                sizeof(GPUParticle) * maxParticlesCount
-            );
-        }
-
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
+        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        //
+        // glBufferSubData(
+        //     GL_SHADER_STORAGE_BUFFER,
+        //     0,
+        //     sizeof(GPUParticle) * maxParticlesCount,
+        //     particles.data()
+        // );
+        //
+        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        //
+        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        //
+        // void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+        //
+        // if (ptr)
+        // {
+        //     memcpy(
+        //         particles.data(),
+        //         ptr,
+        //         sizeof(GPUParticle) * maxParticlesCount
+        //     );
+        // }
+        //
+        // glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        //
         return;
     }
 }
@@ -132,7 +127,6 @@ bool emit = true;
 
 void GPUParticleEmitter::Update(float deltaTime)
 {
-    elapsedTime += deltaTime;
 
     float interval = 1.0f / emissionRate;
 
@@ -142,9 +136,38 @@ void GPUParticleEmitter::Update(float deltaTime)
         elapsedTime -= interval;
     }
 
+    int currentAliveCount = 0;
+    int currentDeadCount = 0;;
+    for (const auto& p : particles)
+    {
+        if (p.data1.w > 0.5f)
+            currentAliveCount++;
+        else
+            currentDeadCount++;
+    }
+
+    aliveCount = currentAliveCount;
+    deadCount = currentDeadCount;
+
+    elapsedTime += deltaTime;
+
     glUseProgram(computeProgram);
 
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+    //upload to GPU
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+    glBufferSubData(
+        GL_SHADER_STORAGE_BUFFER,
+        0,
+        sizeof(GPUParticle) * maxParticlesCount,
+        particles.data()
+    );
+
+    // glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    //
+    // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+    // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 
     glUniform1f(
         glGetUniformLocation(computeProgram, "deltaTime"),
@@ -166,6 +189,7 @@ void GPUParticleEmitter::Update(float deltaTime)
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 
     void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+    //particles.clear();
 
     if (ptr)
     {
@@ -179,6 +203,7 @@ void GPUParticleEmitter::Update(float deltaTime)
     }
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    //printf("hi\n");
 }
 
 void GPUParticleEmitter::SetGravity(float pGravity) {
@@ -201,10 +226,14 @@ std::vector<GPUParticle> GPUParticleEmitter::GetAliveParticles(const std::vector
 }
 void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& view)
 {
-    std::vector<GPUParticle> aliveParticles = GetAliveParticles(particles);
+    // std::vector<GPUParticle> aliveParticles = GetAliveParticles(particles);
 
-    for (auto& part : aliveParticles) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), part.position);
+    for (auto& part : particles) {
+        if (part.data1.w < 0.5) {
+            continue;
+        }
+
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(part.position));
 
         glm::mat4 MVPmatrix = projection * view * model;
         glUseProgram(renderProgram);
@@ -282,19 +311,7 @@ void GPUParticleEmitter::Debug()
 
 
 
-    for (const auto& p : particles)
-    {
-        if (p.data1.w > 0.5f)
-            currentAliveCount++;
-        else
-            currentDeadCount++;
-    }
 
-    aliveCount = currentAliveCount;
-    deadCount = currentDeadCount;
-
-    currentAliveCount = 0;
-    currentDeadCount = 0;
     if (!particles.empty())
     {
         const auto& p = particles[0];
