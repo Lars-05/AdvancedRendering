@@ -19,7 +19,7 @@ class GPUParticle
         // y = end gravity
         // z = start alpha
         // w = end alpha
-    
+
 public:
     GPUParticle();
     ~GPUParticle();

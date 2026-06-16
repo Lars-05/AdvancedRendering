@@ -81,7 +81,7 @@ void GPUParticleEmitter::EmitParticle()
         p.data1 = glm::vec4(
             5.0f,  // life
             5.0f,  // max life
-            0.2f,  // size
+            2.2f,  // size
             1.0f   // alive
         );
 
@@ -233,7 +233,11 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
             continue;
         }
 
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(part.position));
+        float size = part.data1.z;
+
+        glm::mat4 model =
+            glm::translate(glm::mat4(1.0f), glm::vec3(part.position)) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(size));
 
         glm::mat4 MVPmatrix = projection * view * model;
         glUseProgram(renderProgram);
