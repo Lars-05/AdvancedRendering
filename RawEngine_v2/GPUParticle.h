@@ -15,7 +15,11 @@ class GPUParticle
         //z = size
         //w = alive
         glm::vec4 data2{};
-        // x == gravity
+        // x = start gravity
+        // y = end gravity
+        // z = start alpha
+        // w = end alpha
+    
 public:
     GPUParticle();
     ~GPUParticle();
