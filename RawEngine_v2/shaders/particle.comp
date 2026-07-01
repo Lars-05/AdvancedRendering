@@ -9,6 +9,7 @@ struct Particle
     vec4 color;
     vec4 data1;
     vec4 data2;
+    vec4 data3;
 };
 
 layout(std430, binding = 0) buffer ParticleBuffer
@@ -23,48 +24,80 @@ void main()
 {
     uint id = gl_GlobalInvocationID.x;
 
-//    if (id >= maxParticles)
-//    return;
+    // Prevent out-of-bounds access.
+    if (id >= maxParticles)
+    return;
 
     Particle p = particles[id];
-   // p.position.xyzw = vec4(0);
-   // p.velocity.xyzw = vec4(0);
-    //p.color.xyzw = vec4(0);
-    //p.data1.xyzw = vec4(0);
-    //p.data2.xyzw = vec4(0);
-    //p.data2.x = 7;
-    //p.data2.y = id;
 
-   if (p.data1.w <= 0.0)
-   {
-       p.position.xyzw = vec4(0);
-       p.position.xyzw = vec4(0);
-       p.velocity.xyzw = vec4(0);
-       p.color.xyzw = vec4(0);
-       p.data1.xyzw = vec4(0);
-       p.data2.xyzw = vec4(0);
-       return;
-   }
+    // data1:
+    // x = current life
+    // y = max life
+    // z = current size
+    // w = alive (0 or 1)
+    //
+    // data2:
+    // x = current gravity
+    // y = current alpha
+    // z = start size
+    // w = end size
+    //
+    // data3:
+    // x = start gravity
+    // y = end gravity
+    // z = start alpha
+    // w = end alpha
 
+    // Dead particle.
+    if (p.data1.w <= 0.0)
+    {
+        p.position = vec4(0.0);
+        p.velocity = vec4(0.0);
+        p.color    = vec4(0.0);
+        p.data1    = vec4(0.0);
+        p.data2    = vec4(0.0);
+
+        particles[id] = p;
+        return;
+    }
 
     float life = p.data1.x;
-    life -= deltaTime;
+    float maxLife = p.data1.y;
 
-//    p.data1.x = life;
-//    p.data1.w = 1;
-//    p.data2.y = id;
-//    p.data2.z = 7;
-//
-    float gravity = p.data2.x;
+    // Avoid divide-by-zero.
+    float progress = 1.0;
+    if (maxLife > 0.0)
+    progress = 1.0 - (life / maxLife);
+
+    progress = clamp(progress, 0.0, 1.0);
+
+
+    life -= deltaTime;
+    p.data1.x = life;
+
+
+    p.data1.z = mix(p.data2.z, p.data2.w, progress);
+
+
+    float gravity = mix(p.data3.x, p.data3.y, progress);
+    p.data2.x = gravity;
+
+
+    float alpha = mix(p.data3.z, p.data3.w, progress);
+    p.data2.y = alpha;
+    p.color.a = alpha;
+
+
     p.velocity.y -= gravity * deltaTime;
-    p.velocity.x = 1.0;
-//
-//
-    p.position.xy += p.velocity.xy * deltaTime;
-//
-//    float maxLife = p.data1.y;
-//    float progress = 1.0 - (life / maxLife);
-//    p.color.a = mix(1.0, 0.0, progress);
+
+    p.position.xyz += p.velocity.xyz * deltaTime;
+
+    // Kill particle.
+    if (life <= 0.0)
+    {
+        p.data1.x = 0.0;
+        p.data1.w = 0.0;
+    }
 
     particles[id] = p;
 }

@@ -21,7 +21,9 @@ public:
     std::vector<GPUParticle> GetAliveParticles(const std::vector<GPUParticle>&);
     void SetEmissionRate(float rate);
     void Initialize();
-    void SetGravity(float gravity);
+    void SetGravity(float, float);
+    void SetSize(float, float);
+    void SetAlpha(float, float);
     void Update(float dt);
     void Render(const glm::mat4& projection, const glm::mat4& view);
     void Debug();
@@ -29,7 +31,13 @@ public:
 private:
 
 
-    float gravity = 0;
+    float startGravity;
+    float startAlpha;
+    float startSize = 1;
+    float endSize = 0.2;
+    float endGravity;
+    float endAlpha;
+
     GLuint ssbo = 0;
 
     GLuint computeProgram = 0;

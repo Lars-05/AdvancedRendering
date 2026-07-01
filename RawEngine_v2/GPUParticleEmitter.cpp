@@ -85,11 +85,17 @@ void GPUParticleEmitter::EmitParticle()
             1.0f   // alive
         );
 
-        p.data2  = glm::vec4(
-        gravity, // gravity
-        0,
-        0,
-        0
+        p.data2 = glm::vec4(
+        0.0f, // x = gravity
+        1.0f, //y = alpha
+        startSize, // z = start size
+        endSize // w = end size
+    );
+         p.data3 = glm::vec4(
+             startGravity,// x = start gravity
+             endGravity,// y = end gravity
+             startAlpha,// z = start alpha
+             endAlpha// w = end alpha
         );
 
         // upload to GPU
@@ -206,8 +212,19 @@ void GPUParticleEmitter::Update(float deltaTime)
     //printf("hi\n");
 }
 
-void GPUParticleEmitter::SetGravity(float pGravity) {
-    gravity = pGravity;
+void GPUParticleEmitter::SetGravity(float pStartGravity, float pEndGravity) {
+
+    startGravity = pStartGravity;
+    endGravity = pEndGravity;
+}
+void GPUParticleEmitter::SetSize(float pStartSize, float pEndSize)
+{
+    startSize = pStartSize;
+    endSize = pEndSize;
+}
+void GPUParticleEmitter::SetAlpha(float pStartAlpha, float pEndAlpha) {
+    startAlpha = pStartAlpha;
+    endAlpha = pEndAlpha;
 }
 
 

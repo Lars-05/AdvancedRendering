@@ -10,17 +10,23 @@ GPUParticle::GPUParticle() {
     color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     data1 = glm::vec4(
-        0.0f, // life
-        5.0f, // max life
-        0.2f, // size
-        0.0f);
+        0.0f, // x = life
+        5.0f, // y = max life
+        1.0f, // z = size
+        0.0f); // w = alive?
 
     data2 = glm::vec4(
-        9.81f, // gravity
-        0.0f,
-        0.0f,
-        3.0f
+        9.81f, // x = gravity
+        1.0f, //y = alpha
+        1.0f, // z = start size
+        1.0f // w = end size
     );
+   data3 = glm::vec4(
+        9.81f,// x = start gravity
+        9.81f,// y = end gravity
+        1.0f,// z = start alpha
+        1.0f// w = end alpha
+   );
 }
 
 GPUParticle::~GPUParticle() = default;

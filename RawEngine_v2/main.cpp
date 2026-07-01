@@ -355,11 +355,15 @@ int main() {
             {
                 myGpuParticleEmitter->SetEmissionRate(emissionRate);
             }
-            static float gravityRate = 0.0f;
+
+            static float startGravity = 0.0f;
+            static float endGravity = 0.0f;
+
             ImGui::SeparatorText("Gravity");
-            ImGui::SliderFloat("Gravity",&gravityRate,1.0f,100000.0f,"%.1f",ImGuiSliderFlags_Logarithmic);
+
+            if (ImGui::SliderFloat("Start Gravity", &startGravity, -20.0f, 20.0f) |ImGui::SliderFloat("End Gravity", &endGravity, -20.0f, 20.0f))
             {
-                myGpuParticleEmitter->SetGravity(gravityRate);
+                myGpuParticleEmitter->SetGravity(startGravity, endGravity);
             }
 
 
