@@ -366,6 +366,17 @@ int main() {
                 myGpuParticleEmitter->SetGravity(startGravity, endGravity);
             }
 
+            static glm::vec2 startSize(0.2f, 0.2f);
+            static glm::vec2 endSize(0.05f, 0.05f);
+
+            ImGui::SeparatorText("Size");
+
+            if (ImGui::DragFloat2("Start Size", &startSize.x, 0.01f, 0.0f, 10.0f) |
+            ImGui::DragFloat2("End Size", &endSize.x, 0.01f, 0.0f, 10.0f))
+            {
+                myGpuParticleEmitter->SetSize(startSize, endSize);
+            }
+
 
             ImGui::Text("Alive: %d", myGpuParticleEmitter->aliveCount);
             ImGui::Text("Dead: %d", myGpuParticleEmitter->deadCount);

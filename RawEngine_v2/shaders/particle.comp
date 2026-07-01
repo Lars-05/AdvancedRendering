@@ -10,6 +10,9 @@ struct Particle
     vec4 data1;
     vec4 data2;
     vec4 data3;
+    vec2 size;
+    vec2 startSize;
+    vec2 endSize;
 };
 
 layout(std430, binding = 0) buffer ParticleBuffer
@@ -64,7 +67,7 @@ void main()
     float life = p.data1.x;
     float maxLife = p.data1.y;
 
-    // Avoid divide-by-zero.
+    // Avoid dividing by zero
     float progress = 1.0;
     if (maxLife > 0.0)
     progress = 1.0 - (life / maxLife);
@@ -82,6 +85,8 @@ void main()
     float gravity = mix(p.data3.x, p.data3.y, progress);
     p.data2.x = gravity;
 
+    vec2 size = mix(p.startSize, p.endSize, progress);
+    p.size = size;
 
     float alpha = mix(p.data3.z, p.data3.w, progress);
     p.data2.y = alpha;

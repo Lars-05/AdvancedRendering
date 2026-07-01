@@ -88,15 +88,21 @@ void GPUParticleEmitter::EmitParticle()
         p.data2 = glm::vec4(
         0.0f, // x = gravity
         1.0f, //y = alpha
-        startSize, // z = start size
-        endSize // w = end size
-    );
+        0,
+        0
+        );
+
          p.data3 = glm::vec4(
              startGravity,// x = start gravity
              endGravity,// y = end gravity
              startAlpha,// z = start alpha
              endAlpha// w = end alpha
         );
+
+
+        p.startSize = startSize;
+        p.endSize = endSize;
+        p.size = startSize;
 
         // upload to GPU
         // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
@@ -217,7 +223,7 @@ void GPUParticleEmitter::SetGravity(float pStartGravity, float pEndGravity) {
     startGravity = pStartGravity;
     endGravity = pEndGravity;
 }
-void GPUParticleEmitter::SetSize(float pStartSize, float pEndSize)
+void GPUParticleEmitter::SetSize(glm::vec2 pStartSize, glm::vec2 pEndSize)
 {
     startSize = pStartSize;
     endSize = pEndSize;
@@ -250,7 +256,7 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
             continue;
         }
 
-        float size = part.data1.z;
+        glm::vec3 size = glm::vec3(part.size, 0.0f);
 
         glm::mat4 model =
             glm::translate(glm::mat4(1.0f), glm::vec3(part.position)) *
