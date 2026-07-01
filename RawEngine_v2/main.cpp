@@ -377,6 +377,15 @@ int main() {
                 myGpuParticleEmitter->SetSize(startSize, endSize);
             }
 
+            static float lifetime = 2.0f;
+
+            ImGui::SeparatorText("Lifetime");
+
+            if (ImGui::SliderFloat("Lifetime", &lifetime, 0.01f, 100.0f))
+            {
+                myGpuParticleEmitter->SetLifetime(lifetime);
+            }
+
 
             ImGui::Text("Alive: %d", myGpuParticleEmitter->aliveCount);
             ImGui::Text("Dead: %d", myGpuParticleEmitter->deadCount);
