@@ -25,6 +25,11 @@ class GPUParticle
         // z = start alpha
         // w = end alpha
 
+    glm::vec2 size = glm::vec2(1.0f, 1.0f);
+    glm::vec2 startSize = glm::vec2(1.0f, 1.0f);
+    glm::vec2 endSize = glm::vec2(1.0f, 1.0f);
+
+
 public:
     GPUParticle();
     ~GPUParticle();

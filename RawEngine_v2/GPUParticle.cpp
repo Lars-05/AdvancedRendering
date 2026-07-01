@@ -27,6 +27,11 @@ GPUParticle::GPUParticle() {
         1.0f,// z = start alpha
         1.0f// w = end alpha
    );
+
+    glm::vec2 size = glm::vec2(1.0f, 1.0f);
+    glm::vec2 startSize = glm::vec2(1.0f, 1.0f);
+    glm::vec2 endSize = glm::vec2(1.0f, 1.0f);
+
 }
 
 GPUParticle::~GPUParticle() = default;

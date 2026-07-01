@@ -22,8 +22,9 @@ public:
     void SetEmissionRate(float rate);
     void Initialize();
     void SetGravity(float, float);
-    void SetSize(float, float);
+    void SetSize(glm::vec2, glm::vec2);
     void SetAlpha(float, float);
+    void SetLifetime(float);
     void Update(float dt);
     void Render(const glm::mat4& projection, const glm::mat4& view);
     void Debug();
@@ -33,10 +34,11 @@ private:
 
     float startGravity;
     float startAlpha;
-    float startSize = 1;
-    float endSize = 0.2;
+    glm::vec2 startSize = glm::vec2(1,1);
+    glm::vec2 endSize = glm::vec2(1,1);
     float endGravity;
     float endAlpha;
+    float lifetime;
 
     GLuint ssbo = 0;
 
