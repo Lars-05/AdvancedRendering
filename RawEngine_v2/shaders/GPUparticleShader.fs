@@ -6,7 +6,7 @@ in vec3 fNor;
 in vec2 uv;
 out vec4 FragColor;
 
-uniform float alpha = 1.0;
+uniform float alpha = 0.5f;
 uniform sampler2D particleTexture;
 
 void main()

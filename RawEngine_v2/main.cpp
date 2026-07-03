@@ -367,6 +367,29 @@ int main() {
             }
 
 
+            static float lifetime = 2.0f;
+
+            ImGui::SeparatorText("Lifetime");
+
+            if (ImGui::SliderFloat("Lifetime", &lifetime, 0.01f, 100.0f))
+            {
+                myGpuParticleEmitter->SetLifetime(lifetime);
+            }
+
+
+            static float beginAlpha = 1.0f;
+            static float endAlpha = 0.0f;
+
+            ImGui::SeparatorText("Alpha");
+
+            if (ImGui::SliderFloat("Begin Alpha", &beginAlpha, 0.0f, 1.0f) |
+            ImGui::SliderFloat("End Alpha", &endAlpha, 0.0f, 1.0f))
+            {
+                myGpuParticleEmitter->SetAlpha(beginAlpha, endAlpha);
+            }
+
+
+
             ImGui::Text("Alive: %d", myGpuParticleEmitter->aliveCount);
             ImGui::Text("Dead: %d", myGpuParticleEmitter->deadCount);
             ImGui::Text("Max Particles: %d", myGpuParticleEmitter->maxParticlesCount);

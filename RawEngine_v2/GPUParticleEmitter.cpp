@@ -278,6 +278,9 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
 
 
         glUniform1i(glGetUniformLocation(renderProgram, "particleTexture"),0);
+        glUniform1f(glGetUniformLocation(renderProgram, "alpha"),part.data2.y);
+
+
 
         glBindVertexArray(quadVAO);
 
@@ -300,9 +303,6 @@ void GPUParticleEmitter::Render(const glm::mat4& projection,const glm::mat4& vie
 
 void GPUParticleEmitter::Debug()
 {
-
-
-
     printf("Compute Program : %u\n", computeProgram);
     printf("Render Program  : %u\n", renderProgram);
 
