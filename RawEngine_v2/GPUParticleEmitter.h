@@ -23,6 +23,7 @@ public:
     void Initialize();
     void SetGravity(float, float);
     void SetSize(float, float);
+    void SetRotation(float, float);
     void SetLifetime(float);
     void SetAlpha(float, float);
     void Update(float dt);
@@ -32,6 +33,8 @@ public:
 private:
 
 
+    float startRotation = 0.0f;
+    float endRotation = 360.0f;
     float startGravity;
     float startAlpha;
     float startSize = 1;

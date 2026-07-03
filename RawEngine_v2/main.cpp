@@ -388,6 +388,17 @@ int main() {
                 myGpuParticleEmitter->SetAlpha(beginAlpha, endAlpha);
             }
 
+            static float startRotation = 0.0f;
+            static float endRotation = 360.0f;
+
+            ImGui::SeparatorText("Rotation");
+
+            if (ImGui::DragFloat("Start Rotation", &startRotation, 1.0f, -360.0f, 360.0f) |
+            ImGui::DragFloat("End Rotation", &endRotation, 1.0f, -360.0f, 360.0f))
+            {
+                myGpuParticleEmitter->SetRotation(startRotation, endRotation);
+            }
+
 
 
             ImGui::Text("Alive: %d", myGpuParticleEmitter->aliveCount);

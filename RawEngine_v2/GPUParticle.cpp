@@ -27,6 +27,10 @@ GPUParticle::GPUParticle() {
         1.0f,// z = start alpha
         1.0f// w = end alpha
    );
+
+    data4 = glm::vec4(
+        0,0,0,0
+   );
 }
 
 GPUParticle::~GPUParticle() = default;

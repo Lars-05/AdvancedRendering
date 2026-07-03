@@ -88,43 +88,22 @@ void GPUParticleEmitter::EmitParticle()
         p.data2 = glm::vec4(
         0.0f, // x = gravity
         1.0f, //y = alpha
-        startSize, // z = start size
-        endSize // w = end size
+        startRotation, // z = start rotation
+        endRotation // w = end rotation
     );
-         p.data3 = glm::vec4(
-             startGravity,// x = start gravity
-             endGravity,// y = end gravity
-             startAlpha,// z = start alpha
-             endAlpha// w = end alpha
-        );
+     p.data3 = glm::vec4(
+         startGravity,// x = start gravity
+         endGravity,// y = end gravity
+         startAlpha,// z = start alpha
+         endAlpha// w = end alpha
+    );
 
-        // upload to GPU
-        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-        //
-        // glBufferSubData(
-        //     GL_SHADER_STORAGE_BUFFER,
-        //     0,
-        //     sizeof(GPUParticle) * maxParticlesCount,
-        //     particles.data()
-        // );
-        //
-        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        //
-        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-        //
-        // void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-        //
-        // if (ptr)
-        // {
-        //     memcpy(
-        //         particles.data(),
-        //         ptr,
-        //         sizeof(GPUParticle) * maxParticlesCount
-        //     );
-        // }
-        //
-        // glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-        //
+        p.data4 = glm::vec4(
+         startRotation,
+         0,
+         0,
+         0
+    );
         return;
     }
 }
@@ -225,6 +204,11 @@ void GPUParticleEmitter::SetSize(float pStartSize, float pEndSize)
 void GPUParticleEmitter::SetAlpha(float pStartAlpha, float pEndAlpha) {
     startAlpha = pStartAlpha;
     endAlpha = pEndAlpha;
+}
+
+void GPUParticleEmitter::SetRotation(float pStartRotation, float pEndRotation) {
+    startRotation= pStartRotation;
+    endRotation = pEndRotation;
 }
 
 

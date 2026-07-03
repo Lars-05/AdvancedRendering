@@ -10,6 +10,7 @@ struct Particle
     vec4 data1;
     vec4 data2;
     vec4 data3;
+    vec4 data4;
 };
 
 layout(std430, binding = 0) buffer ParticleBuffer
@@ -39,8 +40,8 @@ void main()
     // data2:
     // x = current gravity
     // y = current alpha
-    // z = start size
-    // w = end size
+    // z = start rotation
+    // w = end rotation
     //
     // data3:
     // x = start gravity
@@ -86,6 +87,10 @@ void main()
     float alpha = mix(p.data3.z, p.data3.w, progress);
     p.data2.y = alpha;
     p.color.a = alpha;
+
+    float rotation = mix( p.data2.z, p.data2.w, progress);
+
+
 
 
     p.velocity.y -= gravity * deltaTime;

@@ -17,15 +17,19 @@ class GPUParticle
         glm::vec4 data2{};
         // x = gravity
         // y = alpha
-        // z = start Size
-        // w = end size
+        // w = start rotation
+        // w = end rotation
         glm::vec4 data3{};
         // x = start gravity
         // y = end gravity
         // z = start alpha
         // w = end alpha
 
-public:
+        glm::vec4 data4{};
+        // x = rotation
+
+    public:
+
     GPUParticle();
     ~GPUParticle();
     GPUParticle& operator=(const GPUParticle& other);
