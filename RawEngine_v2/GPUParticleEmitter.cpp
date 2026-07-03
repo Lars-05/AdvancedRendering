@@ -79,8 +79,8 @@ void GPUParticleEmitter::EmitParticle()
         p.color = glm::vec4(1.0f);
 
         p.data1 = glm::vec4(
-            5.0f,  // life
-            5.0f,  // max life
+            lifetime,  // life
+            lifetime,  // max life
             2.2f,  // size
             1.0f   // alive
         );
@@ -226,6 +226,14 @@ void GPUParticleEmitter::SetAlpha(float pStartAlpha, float pEndAlpha) {
     startAlpha = pStartAlpha;
     endAlpha = pEndAlpha;
 }
+
+
+void GPUParticleEmitter::SetLifetime(float pLifetime) {
+    lifetime = pLifetime;
+}
+
+
+
 
 
 std::vector<GPUParticle> GPUParticleEmitter::GetAliveParticles(const std::vector<GPUParticle>& particleVector){

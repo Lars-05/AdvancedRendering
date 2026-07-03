@@ -23,6 +23,7 @@ public:
     void Initialize();
     void SetGravity(float, float);
     void SetSize(float, float);
+    void SetLifetime(float);
     void SetAlpha(float, float);
     void Update(float dt);
     void Render(const glm::mat4& projection, const glm::mat4& view);
@@ -37,6 +38,7 @@ private:
     float endSize = 0.2;
     float endGravity;
     float endAlpha;
+    float lifetime = 5;
 
     GLuint ssbo = 0;
 
